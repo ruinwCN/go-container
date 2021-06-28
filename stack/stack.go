@@ -24,12 +24,8 @@ func (s *Stack) Push(value interface{}) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	node := &Node{value: value, next: nil}
-	if s.top != nil {
-		node.next = s.top
-		s.top = node
-	} else {
-		s.top = node
-	}
+	node.next = s.top
+	s.top = node
 	s.size++
 	return nil
 }
@@ -52,7 +48,7 @@ func (s *Stack) Top() (interface{}, error) {
 	if s.top != nil {
 		return s.top.value, nil
 	}
-	return nil, errors.New("top is null")
+	return nil, errors.New("top is nil")
 }
 
 func (s *Stack) Size() uint64 {
