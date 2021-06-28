@@ -34,22 +34,26 @@ func TestStack_Test(t *testing.T) {
 
 func TestStack_Mut(t *testing.T) {
 	wg := sync.WaitGroup{}
-	wg.Add(150)
+	wg.Add(100)
 	s := New()
 	go func() {
 		for i := 0; i < 100; i++ {
-			_ = s.Push(i)
-			wg.Done()
-		}
-	}()
-	go func() {
-		for i := 0; i < 50; i++ {
-			_, _ = s.Pop()
-			wg.Done()
+			go func(value int) {
+				_ = s.Push(value)
+				wg.Done()
+			}(i)
 		}
 	}()
 	wg.Wait()
-	if s.Size() != 50 {
-		t.Error("stack length error")
-	}
+	wg.Add(50)
+	go func() {
+		for i := 0; i < 50; i++ {
+			go func() {
+				_, _ = s.Pop()
+				wg.Done()
+			}()
+		}
+	}()
+	wg.Wait()
+	t.Log(s.Size())
 }
