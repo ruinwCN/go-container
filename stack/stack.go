@@ -9,6 +9,7 @@ type Stack struct {
 	top   *Node
 	size  uint64
 	mutex sync.RWMutex
+	lock  bool
 }
 
 type Node struct {
@@ -17,12 +18,18 @@ type Node struct {
 }
 
 func New() *Stack {
-	return &Stack{nil, 0, sync.RWMutex{}}
+	return &Stack{nil, 0, sync.RWMutex{}, false}
+}
+
+func (s *Stack) SetLock(lock bool) {
+	s.lock = lock
 }
 
 func (s *Stack) Push(value interface{}) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	if s.lock {
+		s.mutex.Lock()
+		defer s.mutex.Unlock()
+	}
 	node := &Node{value: value, next: nil}
 	node.next = s.top
 	s.top = node
@@ -31,8 +38,10 @@ func (s *Stack) Push(value interface{}) error {
 }
 
 func (s *Stack) Pop() (interface{}, error) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	if s.lock {
+		s.mutex.Lock()
+		defer s.mutex.Unlock()
+	}
 	if s.top == nil || s.size <= 0 {
 		return nil, errors.New("stack is empty")
 	}
@@ -43,8 +52,10 @@ func (s *Stack) Pop() (interface{}, error) {
 }
 
 func (s *Stack) Top() (interface{}, error) {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	if s.lock {
+		s.mutex.Lock()
+		defer s.mutex.Unlock()
+	}
 	if s.top != nil {
 		return s.top.value, nil
 	}
@@ -52,7 +63,9 @@ func (s *Stack) Top() (interface{}, error) {
 }
 
 func (s *Stack) Size() uint64 {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	if s.lock {
+		s.mutex.Lock()
+		defer s.mutex.Unlock()
+	}
 	return s.size
 }

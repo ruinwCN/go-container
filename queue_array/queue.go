@@ -8,19 +8,27 @@ import (
 type Queue struct {
 	array []interface{}
 	size  uint64
-	lock  sync.RWMutex
+	mutex sync.RWMutex
+	lock  bool
 }
 
 func New() *Queue {
 	pq := &Queue{}
 	pq.array = make([]interface{}, 0)
 	pq.size = 0
+	pq.lock = false
 	return pq
 }
 
+func (pq *Queue) SetLock(lock bool) {
+	pq.lock = lock
+}
+
 func (pq *Queue) Size() uint64 {
-	pq.lock.RLock()
-	defer pq.lock.RUnlock()
+	if pq.lock {
+		pq.mutex.Lock()
+		defer pq.mutex.Unlock()
+	}
 	return pq.size
 }
 
@@ -32,8 +40,10 @@ func (pq *Queue) Top() (interface{}, error) {
 }
 
 func (pq *Queue) Push(data interface{}) error {
-	pq.lock.Lock()
-	defer pq.lock.Unlock()
+	if pq.lock {
+		pq.mutex.Lock()
+		defer pq.mutex.Unlock()
+	}
 	qData := data
 	pq.array = append(pq.array, qData)
 	pq.size++
@@ -41,8 +51,10 @@ func (pq *Queue) Push(data interface{}) error {
 }
 
 func (pq *Queue) Pop() (interface{}, error) {
-	pq.lock.Lock()
-	defer pq.lock.Unlock()
+	if pq.lock {
+		pq.mutex.Lock()
+		defer pq.mutex.Unlock()
+	}
 	if pq.size == 0 {
 		return nil, errors.New("queue is empty. ")
 	}

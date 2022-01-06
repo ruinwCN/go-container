@@ -10,6 +10,7 @@ type Queue struct {
 	tail  *Node
 	size  uint64
 	mutex sync.RWMutex
+	lock  bool
 }
 
 type Node struct {
@@ -18,12 +19,18 @@ type Node struct {
 }
 
 func New() *Queue {
-	return &Queue{nil, nil, 0, sync.RWMutex{}}
+	return &Queue{nil, nil, 0, sync.RWMutex{}, false}
+}
+
+func (s *Queue) SetLock(lock bool) {
+	s.lock = lock
 }
 
 func (s *Queue) Push(value interface{}) error {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	if s.lock {
+		s.mutex.Lock()
+		defer s.mutex.Unlock()
+	}
 	node := &Node{value: value, next: nil}
 	if s.size == 0 {
 		s.head = node
@@ -37,6 +44,10 @@ func (s *Queue) Push(value interface{}) error {
 }
 
 func (s *Queue) Pop() (interface{}, error) {
+	if s.lock {
+		s.mutex.Lock()
+		defer s.mutex.Unlock()
+	}
 	if s.head == nil || s.size == 0 {
 		return nil, errors.New("queue is empty. ")
 	}
