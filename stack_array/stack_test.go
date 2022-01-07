@@ -36,6 +36,7 @@ func TestStack_Mut(t *testing.T) {
 	wg := sync.WaitGroup{}
 	wg.Add(100)
 	s := New()
+	s.lock = true
 	go func() {
 		for i := 0; i < 100; i++ {
 			go func(value int) {
