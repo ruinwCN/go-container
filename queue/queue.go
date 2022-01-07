@@ -22,58 +22,58 @@ func New() *Queue {
 	return &Queue{nil, nil, 0, sync.RWMutex{}, false}
 }
 
-func (s *Queue) SetLock(lock bool) {
-	s.lock = lock
+func (q *Queue) SetLock(lock bool) {
+	q.lock = lock
 }
 
-func (s *Queue) Push(value interface{}) error {
-	if s.lock {
-		s.mutex.Lock()
-		defer s.mutex.Unlock()
+func (q *Queue) Push(value interface{}) error {
+	if q.lock {
+		q.mutex.Lock()
+		defer q.mutex.Unlock()
 	}
 	node := &Node{value: value, next: nil}
-	if s.size == 0 {
-		s.head = node
-		s.tail = node
+	if q.size == 0 {
+		q.head = node
+		q.tail = node
 	} else {
-		s.tail.next = node
-		s.tail = node
+		q.tail.next = node
+		q.tail = node
 	}
-	s.size++
+	q.size++
 	return nil
 }
 
-func (s *Queue) Pop() (interface{}, error) {
-	if s.lock {
-		s.mutex.Lock()
-		defer s.mutex.Unlock()
+func (q *Queue) Pop() (interface{}, error) {
+	if q.lock {
+		q.mutex.Lock()
+		defer q.mutex.Unlock()
 	}
-	if s.head == nil || s.size == 0 {
+	if q.head == nil || q.size == 0 {
 		return nil, errors.New("queue is empty. ")
 	}
-	if s.head == s.tail {
+	if q.head == q.tail {
 		tmp := &Node{
-			value: s.head.value,
+			value: q.head.value,
 			next:  nil,
 		}
-		s.head = nil
-		s.tail = nil
-		s.size--
+		q.head = nil
+		q.tail = nil
+		q.size--
 		return tmp, nil
 	}
-	node := s.head
-	s.head = s.head.next
-	s.size--
+	node := q.head
+	q.head = q.head.next
+	q.size--
 	return node.value, nil
 }
 
-func (s *Queue) Top() (interface{}, error) {
-	if s.head != nil {
-		return s.head.value, nil
+func (q *Queue) Top() (interface{}, error) {
+	if q.head != nil {
+		return q.head.value, nil
 	}
 	return nil, errors.New("queue is empty. ")
 }
 
-func (s *Queue) Size() uint64 {
-	return s.size
+func (q *Queue) Size() uint64 {
+	return q.size
 }
